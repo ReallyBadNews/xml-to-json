@@ -8,14 +8,17 @@ async function parseXmlToJson(
   jsonFilePath: string
 ): Promise<void> {
   try {
-    const xml = await fs.readFile(xmlFilePath, "utf8");
-    const parser = new xml2js.Parser({ explicitArray: false });
+    const file = Bun.file(xmlFilePath);
+    const xml = await file.text();
+    const parser = new xml2js.Parser({
+      explicitArray: false,
+    });
 
     parser.parseString(xml, async (err, result) => {
       if (err) throw err;
 
       const json = JSON.stringify(result, null, 2); // Pretty print JSON
-      await fs.writeFile(jsonFilePath, json);
+      await Bun.write(jsonFilePath, json);
       console.log(`JSON saved to ${jsonFilePath}`);
     });
   } catch (error) {
