@@ -1,29 +1,13 @@
-import * as fs from "fs/promises";
-import * as xml2js from "xml2js";
+import { Hono } from "hono";
+import { handle, LambdaContext, LambdaEvent } from "hono/aws-lambda";
 
-const inputPath = process.argv[2];
+type Bindings = {
+  event: LambdaEvent;
+  lambdaContext: LambdaContext;
+};
 
-async function parseXmlToJson(
-  xmlFilePath: string,
-  jsonFilePath: string
-): Promise<void> {
-  try {
-    const file = Bun.file(xmlFilePath);
-    const xml = await file.text();
-    const parser = new xml2js.Parser({
-      explicitArray: false,
-    });
+const app = new Hono<{ Bindings: Bindings }>();
 
-    parser.parseString(xml, async (err, result) => {
-      if (err) throw err;
+app.get("/", (c) => c.json({ message: "Hello World" }));
 
-      const json = JSON.stringify(result, null, 2); // Pretty print JSON
-      await Bun.write(jsonFilePath, json);
-      console.log(`JSON saved to ${jsonFilePath}`);
-    });
-  } catch (error) {
-    console.error("Error:", error);
-  }
-}
-
-parseXmlToJson(inputPath, "./dist/output.json");
+export const handler = handle(app);
